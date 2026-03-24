@@ -1,8 +1,5 @@
 # RapidSales.ai
 
-**Candidate:** Nupur Paliwal  
-**Submitted:** 24-03-26
-
 ## Deliverables
 
 | Task | Document | Live Link |
