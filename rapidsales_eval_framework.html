@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RapidSales.ai — LLM Evaluation Framework</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=Fira+Code:wght@400;500&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0C0E0F;
+  --deep: #111416;
+  --panel: #161A1C;
+  --card: #1C2124;
+  --card2: #222830;
+  --lift: #272E34;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.11);
+  --yellow: #F0C93A;
+  --y-dim: rgba(240,201,58,0.12);
+  --y-mid: rgba(240,201,58,0.28);
+  --cyan: #3ECFCF;
+  --c-dim: rgba(62,207,207,0.1);
+  --orange: #F07A3E;
+  --o-dim: rgba(240,122,62,0.1);
+  --rose: #E05C7A;
+  --r-dim: rgba(224,92,122,0.1);
+  --green: #4CCF8A;
+  --g-dim: rgba(76,207,138,0.1);
+  --violet: #9B7FE8;
+  --v-dim: rgba(155,127,232,0.1);
+  --text: #D8DDE2;
+  --muted: rgba(216,221,226,0.45);
+  --dim: rgba(216,221,226,0.22);
+  --sans: 'Barlow', sans-serif;
+  --serif: 'Fraunces', serif;
+  --mono: 'Fira Code', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:14.5px;line-height:1.75;-webkit-font-smoothing:antialiased;}
+
+/* HERO */
+.hero{background:var(--deep);border-bottom:1px solid var(--border);padding:60px 60px 48px;position:relative;overflow:hidden;}
+.hero-dots{position:absolute;inset:0;background-image:radial-gradient(rgba(240,201,58,0.06) 1px,transparent 1px);background-size:28px 28px;}
+.hero-flare{position:absolute;bottom:-100px;right:-60px;width:360px;height:360px;background:radial-gradient(circle,rgba(240,201,58,0.05) 0%,transparent 65%);pointer-events:none;}
+.hero-inner{position:relative;}
+.hero-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--yellow);background:var(--y-dim);border:1px solid var(--y-mid);display:inline-block;padding:5px 12px;border-radius:2px;margin-bottom:20px;}
+.hero h1{font-family:var(--serif);font-size:46px;font-weight:300;line-height:1.08;margin-bottom:12px;max-width:680px;}
+.hero h1 strong{font-weight:600;color:var(--yellow);}
+.hero-sub{font-size:14px;color:var(--muted);max-width:540px;margin-bottom:32px;font-weight:300;}
+.hero-chips{display:flex;gap:10px;flex-wrap:wrap;}
+.chip{font-family:var(--mono);font-size:10px;color:var(--dim);background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:4px 12px;border-radius:2px;letter-spacing:0.06em;}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:200;background:rgba(12,14,15,0.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;padding:0 60px;overflow-x:auto;}
+.nav a{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);text-decoration:none;padding:14px 15px;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;}
+.nav a:hover{color:var(--yellow);border-bottom-color:var(--yellow);}
+
+/* LAYOUT */
+.wrap{max-width:1020px;margin:0 auto;padding:0 60px 100px;}
+
+/* SECTION */
+.sec{margin-top:72px;}
+.sec-head{margin-bottom:28px;padding-bottom:18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:16px;}
+.sec-tag{font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--yellow);background:var(--y-dim);border:1px solid var(--y-mid);padding:5px 10px;border-radius:2px;flex-shrink:0;margin-top:6px;}
+.sec-head h2{font-family:var(--serif);font-size:32px;font-weight:300;line-height:1.15;}
+.sec-head h2 strong{font-weight:600;color:var(--yellow);}
+.sec-head p{font-size:13px;color:var(--muted);margin-top:5px;max-width:600px;font-weight:300;}
+
+/* CHANNEL BLOCKS */
+.channel-header{display:flex;align-items:center;gap:14px;margin:28px 0 18px;}
+.ch-pill{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;padding:6px 14px;border-radius:2px;border:1px solid;}
+.ch-email{background:var(--c-dim);border-color:rgba(62,207,207,0.3);color:var(--cyan);}
+.ch-whatsapp{background:var(--g-dim);border-color:rgba(76,207,138,0.3);color:var(--green);}
+.ch-voice{background:var(--o-dim);border-color:rgba(240,122,62,0.3);color:var(--orange);}
+.ch-name{font-size:17px;font-weight:700;letter-spacing:0.02em;}
+.ch-nature{font-size:12px;color:var(--muted);font-weight:300;font-style:italic;}
+
+/* METRIC CARDS */
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin:16px 0 32px;}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;}
+.mc-head{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.mc-name{font-size:13px;font-weight:700;letter-spacing:0.02em;line-height:1.3;}
+.mc-code{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:2px;white-space:nowrap;flex-shrink:0;letter-spacing:0.08em;text-transform:uppercase;}
+.mc-body{padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:12px;}
+.mc-row{font-size:12px;color:var(--muted);}
+.mc-row strong{color:var(--text);font-weight:600;display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;font-family:var(--mono);}
+.formula{font-family:var(--mono);font-size:11px;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:8px 12px;color:var(--yellow);line-height:1.6;}
+.thresholds{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.thr{padding:8px 10px;border-radius:4px;font-size:11px;font-family:var(--mono);}
+.thr-good{background:var(--g-dim);border:1px solid rgba(76,207,138,0.18);}
+.thr-good .thr-label{color:var(--green);font-size:9px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
+.thr-poor{background:var(--r-dim);border:1px solid rgba(224,92,122,0.18);}
+.thr-poor .thr-label{color:var(--rose);font-size:9px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
+.thr-val{color:var(--text);font-weight:500;font-size:12px;}
+
+/* M-TYPE COLOR CODING */
+.mt-email .mc-code{background:var(--c-dim);color:var(--cyan);}
+.mt-wa .mc-code{background:var(--g-dim);color:var(--green);}
+.mt-voice .mc-code{background:var(--o-dim);color:var(--orange);}
+.mt-cross .mc-code{background:var(--v-dim);color:var(--violet);}
+
+/* TEST CASES */
+.test-card{background:var(--card);border:1px solid var(--border);border-radius:8px;margin:20px 0;overflow:hidden;}
+.tc-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.tc-title{display:flex;align-items:center;gap:12px;}
+.tc-title h4{font-size:14px;font-weight:700;}
+.stress-badge{font-family:var(--mono);font-size:9px;padding:3px 10px;border-radius:2px;letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;}
+.sb-adversarial{background:var(--r-dim);color:var(--rose);border:1px solid rgba(224,92,122,0.25);}
+.sb-edge{background:var(--y-dim);color:var(--yellow);border:1px solid var(--y-mid);}
+.sb-ambiguous{background:var(--v-dim);color:var(--violet);border:1px solid rgba(155,127,232,0.25);}
+
+.tc-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border);}
+@media(max-width:700px){.tc-grid{grid-template-columns:1fr;}}
+.tc-col{padding:18px 20px;border-right:1px solid var(--border);}
+.tc-col:last-child{border-right:none;}
+.tc-label{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.tc-label::before{content:'';display:inline-block;width:14px;height:1px;background:currentColor;}
+.context-block{font-size:12px;color:var(--muted);font-family:var(--mono);line-height:1.8;}
+.context-block span{color:var(--text);}
+.msg-bubble{background:var(--lift);border:1px solid var(--border2);border-radius:0 8px 8px 8px;padding:13px 15px;font-size:13px;font-style:italic;font-family:var(--serif);color:var(--text);line-height:1.7;}
+.ideal-block{background:rgba(240,201,58,0.04);border-left:3px solid var(--yellow);padding:14px 16px;border-radius:0 6px 6px 0;font-size:13px;line-height:1.75;color:var(--text);}
+.ideal-block em{color:var(--yellow);font-style:normal;font-weight:600;}
+.tc-scoring{padding:16px 20px;background:var(--panel);}
+.scoring-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.score-dim{font-family:var(--mono);font-size:10px;padding:4px 10px;background:var(--card);border:1px solid var(--border);border-radius:2px;color:var(--muted);}
+.score-dim strong{color:var(--yellow);}
+.why-hard{font-size:12px;color:var(--muted);margin-top:12px;padding:10px 12px;background:rgba(224,92,122,0.06);border:1px solid rgba(224,92,122,0.12);border-radius:4px;font-weight:300;}
+.why-hard strong{color:var(--rose);}
+
+/* DRIFT SYSTEM */
+.drift-architecture{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:20px 0;}
+@media(max-width:780px){.drift-architecture{grid-template-columns:1fr;}}
+.drift-layer{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.dl-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.dl-num{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--yellow);background:var(--y-dim);border:1px solid var(--y-mid);width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dl-head h4{font-size:13px;font-weight:700;}
+.dl-body{padding:14px 16px;font-size:12.5px;color:var(--muted);font-weight:300;}
+.dl-body strong{color:var(--text);font-weight:600;}
+
+.alert-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:12.5px;}
+.alert-table th{background:var(--panel);padding:11px 14px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--border);}
+.alert-table td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+.alert-table tr:last-child td{border-bottom:none;}
+.alert-table tr:nth-child(even) td{background:rgba(255,255,255,0.015);}
+.sev{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;}
+.sev-p1{background:var(--r-dim);color:var(--rose);}
+.sev-p2{background:var(--y-dim);color:var(--yellow);}
+.sev-p3{background:var(--v-dim);color:var(--violet);}
+
+.response-protocol{background:var(--card);border:1px solid var(--border);border-radius:8px;margin:20px 0;overflow:hidden;}
+.rp-head{padding:14px 18px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--yellow);display:flex;align-items:center;gap:10px;}
+.rp-head::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--rose);animation:blink 1.6s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.rp-steps{padding:18px;display:flex;flex-direction:column;gap:0;}
+.rp-step{display:flex;gap:16px;padding:12px 0;border-bottom:1px solid var(--border);}
+.rp-step:last-child{border-bottom:none;}
+.rp-t{font-family:var(--mono);font-size:10px;color:var(--yellow);width:60px;flex-shrink:0;padding-top:2px;}
+.rp-step-body{font-size:13px;color:var(--muted);}
+.rp-step-body strong{color:var(--text);font-weight:600;}
+
+/* CALLOUT */
+.callout{border-radius:6px;padding:14px 16px;font-size:12.5px;display:flex;gap:12px;margin:18px 0;font-weight:300;}
+.callout-icon{flex-shrink:0;margin-top:1px;font-size:13px;}
+.callout-y{background:var(--y-dim);border:1px solid var(--y-mid);color:rgba(216,221,226,0.75);}
+.callout-r{background:var(--r-dim);border:1px solid rgba(224,92,122,0.2);color:rgba(216,221,226,0.75);}
+
+/* DIVIDER */
+hr.div{border:none;border-top:1px solid var(--border);margin:64px 0;}
+
+/* IMPL NOTES */
+.impl-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0;}
+@media(max-width:660px){.impl-grid{grid-template-columns:1fr;}}
+.impl-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;}
+.impl-tag{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:2px 8px;border-radius:2px;margin-bottom:10px;display:inline-block;}
+.impl-title{font-size:13px;font-weight:700;margin-bottom:6px;}
+.impl-body{font-size:12px;color:var(--muted);font-weight:300;line-height:1.75;}
+
+/* FOOTER */
+.footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+.footer-text{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:0.06em;}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-dots"></div>
+  <div class="hero-flare"></div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow">RapidSales.ai · Eval Framework v1.0</div>
+    <h1>LLM Evaluation Framework<br>for <strong>Multi-Channel Sales AI</strong></h1>
+    <p class="hero-sub">Day-one evaluation architecture for email, WhatsApp, and voice AI outreach. Objective metrics, synthetic stress tests, and automated drift detection built to run with a lean team.</p>
+    <div class="hero-chips">
+      <span class="chip">3 Channels</span>
+      <span class="chip">12 Metrics Defined</span>
+      <span class="chip">3 Adversarial Test Cases</span>
+      <span class="chip">Automated Drift Detection</span>
+      <span class="chip">Day-1 Implementable</span>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="#s1">Channel Metrics</a>
+  <a href="#s2">Metric Specs</a>
+  <a href="#s3">Synthetic Test Set</a>
+  <a href="#s4">Drift Detection</a>
+</nav>
+
+<div class="wrap">
+
+<!-- ===== S1: FRAMEWORK OVERVIEW ===== -->
+<div class="sec" id="s1">
+  <div class="sec-head">
+    <div class="sec-tag">S-01</div>
+    <div>
+      <h2>Evaluation Framework — <strong>Channel Architecture</strong></h2>
+      <p>Each channel has fundamentally different latency, user intent, and measurability constraints. The framework treats them as distinct systems, not as a single AI with three skins.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-y">
+    <span class="callout-icon">◎</span>
+    <div><strong>Design philosophy:</strong> Every metric must be computable programmatically without a human reading the output — that's the constraint. Metrics requiring subjective human scoring are labelled as HUMAN-IN-LOOP and used sparingly, only for the quarterly calibration runs, not the live monitoring pipeline.</div>
+  </div>
+
+  <!-- EMAIL -->
+  <div class="channel-header">
+    <span class="ch-pill ch-email">Email</span>
+    <div>
+      <div class="ch-name">Personalised Cold Email</div>
+      <div class="ch-nature">Asynchronous · Read at leisure · Can be re-read · Subject line = gatekeeper · 1-way first touch</div>
+    </div>
+  </div>
+  <div class="metric-grid">
+
+    <div class="metric-card mt-email">
+      <div class="mc-head">
+        <div class="mc-name">Subject Line<br>Open Rate</div>
+        <span class="mc-code">EM-01</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>Whether the subject line is compelling enough to earn an open in a cold inbox. The single highest-leverage email metric — nothing else matters if it's 0.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Opens ÷ Delivered × 100</div>
+          Tracked via email platform pixel. Segment by: city tier, lead source, time-of-send.
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≥ 28%</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≤ 14%</div></div>
+        </div>
+        <div class="mc-row"><strong>Automation</strong>Email platform webhook → metrics DB. No human needed.</div>
+      </div>
+    </div>
+
+    <div class="metric-card mt-email">
+      <div class="mc-head">
+        <div class="mc-name">Personalisation<br>Accuracy Score</div>
+        <span class="mc-code">EM-02</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>Whether the AI correctly used the lead's specific data — name, city, monthly bill range, home ownership — without hallucinating details not in the input context.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Regex + field-match check:<br>verified_fields_used ÷ total_personalisable_fields<br>+ 0 if any hallucinated field detected</div>
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≥ 0.95</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≤ 0.80</div></div>
+        </div>
+        <div class="mc-row"><strong>Automation</strong>Post-generation linter: cross-checks rendered email fields against CRM record. Flags mismatches. Fully automated.</div>
+      </div>
+    </div>
+
+    <div class="metric-card mt-email">
+      <div class="mc-head">
+        <div class="mc-name">CTA Clarity<br>Score</div>
+        <span class="mc-code">EM-03</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>Whether the email contains exactly one clear, specific call-to-action (e.g., "Book a free site visit" link) — not zero, not three competing CTAs, not a vague "let us know".</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Rule-based classifier:<br>1 = exactly 1 actionable CTA present<br>0.5 = CTA present but vague<br>0 = no CTA or 3+ CTAs</div>
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">Score = 1.0</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">Score ≤ 0.5</div></div>
+        </div>
+        <div class="mc-row"><strong>Automation</strong>Regex: count links + action verbs near closing. CTA presence classifier using keyword list ("schedule", "book", "reply to this").</div>
+      </div>
+    </div>
+
+    <div class="metric-card mt-email">
+      <div class="mc-head">
+        <div class="mc-name">Reply-to-Lead<br>Conversion Rate</div>
+        <span class="mc-code">EM-04</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>Of all emails that received a reply (any reply — positive, question, objection), how many resulted in a qualified lead being passed to the sales team. The downstream business metric for email quality.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Replies_that_became_qualified_leads<br>÷ Total_email_replies × 100</div>
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≥ 18%</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≤ 7%</div></div>
+        </div>
+        <div class="mc-row"><strong>Automation</strong>CRM pipeline stage tracking. Lead status join on email reply thread ID. Weekly batch computation.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- WHATSAPP -->
+  <div class="channel-header">
+    <span class="ch-pill ch-whatsapp">WhatsApp</span>
+    <div>
+      <div class="ch-name">WhatsApp Conversational AI</div>
+      <div class="ch-nature">Semi-synchronous · Informal tone expected · Multi-turn · Read receipts visible · Short messages norm · High abandon rate</div>
+    </div>
+  </div>
+  <div class="metric-grid">
+
+    <div class="metric-card mt-wa">
+      <div class="mc-head">
+        <div class="mc-name">Conversation<br>Completion Rate</div>
+        <span class="mc-code">WA-01</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>The % of initiated WhatsApp conversations that reach a defined terminal state (qualified lead, callback booked, or DNC) rather than going silent mid-thread — the primary quality signal for conversational flow.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Conversations_with_terminal_outcome<br>÷ Total_conversations_started × 100</div>
+          Terminal state = any of: INTERESTED, CB_BOOKED, DNC flagged, HANDOFF triggered.
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≥ 52%</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≤ 28%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card mt-wa">
+      <div class="mc-head">
+        <div class="mc-name">Median Response<br>Latency</div>
+        <span class="mc-code">WA-02</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>How fast the AI replies after the user's message timestamp. On WhatsApp, a 4-second delay feels like a dead line — users will leave. This metric has a sweet spot: too fast feels like spam, too slow kills the thread.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">median(t_ai_reply − t_user_message)<br>in milliseconds, per conversation cohort</div>
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">800ms – 2.4s</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">&lt;400ms or &gt;5s</div></div>
+        </div>
+        <div class="mc-row"><strong>Automation</strong>Message timestamp delta from WhatsApp Business API webhook log. P50 computed hourly.</div>
+      </div>
+    </div>
+
+    <div class="metric-card mt-wa">
+      <div class="mc-head">
+        <div class="mc-name">Turn-Level<br>Coherence Score</div>
+        <span class="mc-code">WA-03</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>Whether the AI's reply is topically coherent with the user's preceding message — i.e., it's answering what was actually asked, not continuing a prior tangent or ignoring a mid-thread topic shift.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Sentence-BERT cosine similarity<br>between [user_msg] and [ai_reply]<br>averaged over all turns in conversation.</div>
+          Score: 0–1. Batch-computed post-conversation.
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≥ 0.68</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≤ 0.45</div></div>
+        </div>
+        <div class="mc-row"><strong>Note</strong>Fully automated via a SBERT embedding pipeline. No human annotation needed at scale.</div>
+      </div>
+    </div>
+
+    <div class="metric-card mt-wa">
+      <div class="mc-head">
+        <div class="mc-name">Objection Recovery<br>Rate</div>
+        <span class="mc-code">WA-04</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>When the AI detects a soft-objection signal (e.g., "bahut mehnga hai"), what % of those conversations continue past the next 2 turns rather than going silent? Measures objection-handling effectiveness specifically.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Conversations_with_≥2_turns_after_objection<br>÷ Conversations_where_objection_classified × 100</div>
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≥ 44%</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≤ 20%</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- VOICE -->
+  <div class="channel-header">
+    <span class="ch-pill ch-voice">Voice</span>
+    <div>
+      <div class="ch-name">AI Voice Cold Call</div>
+      <div class="ch-nature">Real-time · No re-read · Tone & pacing matter as much as content · Interruption-sensitive · STT errors compound · 15-second survival window</div>
+    </div>
+  </div>
+  <div class="metric-grid">
+
+    <div class="metric-card mt-voice">
+      <div class="mc-head">
+        <div class="mc-name">Post-Opening<br>Retention Rate</div>
+        <span class="mc-code">VC-01</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>The % of calls where the prospect stays on the line past the 15-second mark after the opening — the single most important early signal of script naturalness and trust.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Calls_with_call_duration &gt; 15s<br>÷ Calls_answered × 100</div>
+          Calls_answered = pickup with &gt;2s of audio (not IVR/instant-hangup).
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≥ 58%</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≤ 30%</div></div>
+        </div>
+        <div class="mc-row"><strong>Automation</strong>Call duration from telephony API (Twilio/Exotel). Computed per call batch, hourly rollup.</div>
+      </div>
+    </div>
+
+    <div class="metric-card mt-voice">
+      <div class="mc-head">
+        <div class="mc-name">Barge-In<br>Recovery Rate</div>
+        <span class="mc-code">VC-02</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>When the prospect interrupts the AI mid-sentence (barge-in detected), what % of those instances does the AI successfully stop, acknowledge, and continue the conversation vs. talking over the prospect or going silent?</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Barge-ins_followed_by_≥1_prospect_turn<br>÷ Total_barge-in_events × 100</div>
+          Barge-in = VAD overlap event logged by telephony layer.
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≥ 72%</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≤ 45%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card mt-voice">
+      <div class="mc-head">
+        <div class="mc-name">Intent Classification<br>Accuracy</div>
+        <span class="mc-code">VC-03</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>How accurately the NLU layer classifies the prospect's intent against the 6 defined outcomes (INTERESTED, CALLBACK, SOFT_OBJ, HARD_DNC, WRONG_NUMBER, NO_ANSWER). Measured on labelled test set + sampled live calls.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Correct_classifications ÷ Total_classified<br>Weighted by class (DNC errors penalised 3×<br>due to compliance risk)</div>
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≥ 91%</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≤ 80%</div></div>
+        </div>
+        <div class="mc-row"><strong>Note</strong>Weekly 1% sample reviewed by QA agent to maintain ground-truth label quality. Not fully automated — HUMAN-IN-LOOP for label refresh only.</div>
+      </div>
+    </div>
+
+    <div class="metric-card mt-voice">
+      <div class="mc-head">
+        <div class="mc-name">Warm Handoff<br>Drop Rate</div>
+        <span class="mc-code">VC-04</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>Of calls where the AI initiated a warm handoff to a human rep, what % resulted in the prospect hanging up before the rep completed their first full sentence? The direct quality signal for handoff script and timing.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Handoffs_where_call_ends_within_15s_of_rep_intro<br>÷ Total_handoffs_initiated × 100</div>
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≤ 8%</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≥ 22%</div></div>
+        </div>
+        <div class="mc-row"><strong>Automation</strong>Call segment timestamps from telephony. Rep-joined event + call_end event delta.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CROSS-CHANNEL -->
+  <div class="channel-header">
+    <span class="ch-pill" style="background:var(--v-dim);border-color:rgba(155,127,232,0.3);color:var(--violet);">Cross-Channel</span>
+    <div>
+      <div class="ch-name">Cross-Channel Business Metrics</div>
+      <div class="ch-nature">Channel-agnostic · Business outcome layer · Lagging indicators that validate leading metrics</div>
+    </div>
+  </div>
+  <div class="metric-grid">
+
+    <div class="metric-card mt-cross">
+      <div class="mc-head">
+        <div class="mc-name">Qualified Lead<br>Rate (QLR)</div>
+        <span class="mc-code">CC-01</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>Across all channels, the % of outreach attempts that produce a qualified lead passed to the sales team. The primary business health metric — if this drops, something upstream is breaking.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Qualified_leads_generated<br>÷ Total_outreach_attempts × 100<br>Computed per channel + combined.</div>
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≥ 6.5%</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≤ 2.5%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-card mt-cross">
+      <div class="mc-head">
+        <div class="mc-name">Brand Safety<br>Violation Rate</div>
+        <span class="mc-code">CC-02</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-row"><strong>What it measures</strong>The % of AI outputs that contain a brand-safety violation: competitor mention, price claim not in approved range, legally sensitive warranty statement, hallucinated product detail. Zero tolerance metric.</div>
+        <div class="mc-row"><strong>Calculation</strong>
+          <div class="formula">Outputs_with_1+_violation_flag<br>÷ Total_AI_outputs × 100<br>Detected by rule-based scanner + LLM judge.</div>
+        </div>
+        <div class="thresholds">
+          <div class="thr thr-good"><div class="thr-label">✓ Good</div><div class="thr-val">≤ 0.1%</div></div>
+          <div class="thr thr-poor"><div class="thr-label">✗ Poor</div><div class="thr-val">≥ 0.5%</div></div>
+        </div>
+        <div class="mc-row"><strong>Note</strong>Any single week at ≥ 0.5% triggers a P1 freeze on all outreach until root cause is identified.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ===== S3: SYNTHETIC TEST CASES ===== -->
+<div class="sec" id="s3">
+  <div class="sec-head">
+    <div class="sec-tag">S-03</div>
+    <div>
+      <h2>Synthetic Test Dataset — <strong>3 Stress Cases</strong></h2>
+      <p>These are not happy-path tests. Each case is designed to expose a specific AI failure mode. Easy inputs are not useful for evaluation — they tell you nothing about where the system breaks.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-r">
+    <span class="callout-icon">⚠</span>
+    <div><strong>Design principle:</strong> A test set composed entirely of "nice prospect asks a clear question" scenarios gives you false confidence. Real cold outreach has: people who are annoyed, people who ask adversarial questions, ambiguous signals, and multi-intent messages. The three cases below each stress a different failure vector.</div>
+  </div>
+
+  <!-- TEST 1: EMAIL -->
+  <div class="test-card">
+    <div class="tc-header">
+      <div class="tc-title">
+        <span class="ch-pill ch-email" style="font-size:9px;padding:3px 10px;">Email</span>
+        <h4>TC-01 · Sparse Lead Data — Personalisation Hallucination Trap</h4>
+      </div>
+      <span class="stress-badge sb-adversarial">Failure Mode: Hallucination</span>
+    </div>
+    <div class="tc-grid">
+      <div class="tc-col">
+        <div class="tc-label">Input Context (CRM record passed to AI)</div>
+        <div class="context-block">
+          name: <span>"Ramesh K."</span><br>
+          city: <span>"Nagpur"</span><br>
+          monthly_bill: <span>NULL</span><br>
+          home_type: <span>NULL</span><br>
+          lead_source: <span>"Facebook form — partial fill"</span><br>
+          ownership: <span>NULL</span><br>
+          previous_contact: <span>None</span>
+        </div>
+      </div>
+      <div class="tc-col">
+        <div class="tc-label">Test input — what the AI is asked to generate</div>
+        <div class="msg-bubble">Generate a cold personalised email for this lead to introduce SunPower Solar and get a reply.</div>
+      </div>
+    </div>
+    <div class="tc-grid">
+      <div class="tc-col" style="grid-column:1/-1">
+        <div class="tc-label">Ideal AI Response (what we score against)</div>
+        <div class="ideal-block">
+          Subject: <em>Nagpur homeowners are saving ₹2,000/month on electricity — here's how</em><br><br>
+          Hi Ramesh,<br><br>
+          I'm reaching out from SunPower Solar. We've been helping homeowners in Nagpur reduce their electricity bills significantly — many are saving between ₹1,800 and ₹3,500 every month after switching to rooftop solar, thanks in part to the government's 40% subsidy under PM Surya Ghar.<br><br>
+          If you own your home and your monthly electricity bill is ₹2,000 or above, there's a good chance solar makes strong financial sense for your situation.<br><br>
+          Would it be okay if I sent you a quick personalised estimate? Just reply with your approximate monthly bill and I'll have something ready for you in a few hours.<br><br>
+          — Arjun, SunPower Solar
+        </div>
+      </div>
+    </div>
+    <div class="tc-scoring">
+      <div class="tc-label">Scoring dimensions</div>
+      <div class="scoring-row">
+        <span class="score-dim">EM-02 Personalisation: <strong>No invented fields</strong></span>
+        <span class="score-dim">EM-03 CTA: <strong>"Reply with your bill" — exactly 1</strong></span>
+        <span class="score-dim">CC-02 Safety: <strong>No false ownership assumption</strong></span>
+        <span class="score-dim">Tone: <strong>City localised, not generic</strong></span>
+      </div>
+      <div class="why-hard"><strong>Why this is hard:</strong> Most AI systems will hallucinate a monthly bill (e.g., "I see your bill is around ₹3,000") to make the email feel more personalised. The ideal response turns the NULL fields into a qualification question — which is more honest AND more likely to get a reply. Hallucinating any field here scores 0 on EM-02 regardless of how good the rest of the email is.</div>
+    </div>
+  </div>
+
+  <!-- TEST 2: WHATSAPP -->
+  <div class="test-card">
+    <div class="tc-header">
+      <div class="tc-title">
+        <span class="ch-pill ch-whatsapp" style="font-size:9px;padding:3px 10px;">WhatsApp</span>
+        <h4>TC-02 · Double-Objection Mid-Thread — Coherence + Recovery Test</h4>
+      </div>
+      <span class="stress-badge sb-edge">Failure Mode: Context Loss</span>
+    </div>
+    <div class="tc-grid">
+      <div class="tc-col">
+        <div class="tc-label">Prior conversation context (5-turn thread)</div>
+        <div class="context-block">
+          Turn 1 AI: Opening message + bill question<br>
+          Turn 2 User: <span>"Haan, bill 3500 aa raha hai hamare ghar ka"</span><br>
+          Turn 3 AI: Acknowledged, explained subsidy + EMI<br>
+          Turn 4 User: <span>"ok interesting... lekin 5 saal pehle padosi ne lagwaya tha, kuch khaas fayda nahi hua"</span><br>
+          <br>
+          [Two objections in one message: cost scepticism + social proof failure]
+        </div>
+      </div>
+      <div class="tc-col">
+        <div class="tc-label">Test input — the exact user message to respond to</div>
+        <div class="msg-bubble">"Ok interesting... lekin 5 saal pehle padosi ne lagwaya tha, kuch khaas fayda nahi hua unhe. Aur mujhe lagta hai humara bill toh waise bhi zyada nahi hai 3500 mein."</div>
+      </div>
+    </div>
+    <div class="tc-grid">
+      <div class="tc-col" style="grid-column:1/-1">
+        <div class="tc-label">Ideal AI Response</div>
+        <div class="ideal-block">
+          That's a fair point — and honestly, 5 years ago the economics were quite different. Panel efficiency has improved by around <em>30–40%</em> since then, and more importantly, the PM Surya Ghar subsidy didn't exist at that time — so your neighbour would have paid full price with older, slower technology.<br><br>
+          On your bill — ₹3,500 a month is actually <em>₹42,000 a year</em>. Over 5 years that's over ₹2 lakh just in electricity. A rooftop system, after subsidy, would cost roughly the same — but then give you 20 more years of near-zero bills.<br><br>
+          I'm not asking you to decide anything now — would it be okay if I just shared a rough calculation specific to your home? 2 minutes, no obligation.
+        </div>
+      </div>
+    </div>
+    <div class="tc-scoring">
+      <div class="tc-label">Scoring dimensions</div>
+      <div class="scoring-row">
+        <span class="score-dim">WA-03 Coherence: <strong>Addresses both objections</strong></span>
+        <span class="score-dim">WA-04 Recovery: <strong>Moves toward CTA despite dual objection</strong></span>
+        <span class="score-dim">Accuracy: <strong>Does not dismiss neighbour's experience</strong></span>
+        <span class="score-dim">Tone: <strong>Short, WhatsApp-native length</strong></span>
+      </div>
+      <div class="why-hard"><strong>Why this is hard:</strong> Two objections arrive simultaneously — social proof failure ("my neighbour tried it") AND price minimisation ("3500 isn't much"). Most AI systems pick ONE to respond to and ignore the other, which feels dismissive. The ideal response reframes both AND converts the sceptical data point (neighbour's experience) into supporting evidence by using the technology-age argument. A response that only addresses one objection scores 0.5 on WA-03.</div>
+    </div>
+  </div>
+
+  <!-- TEST 3: VOICE -->
+  <div class="test-card">
+    <div class="tc-header">
+      <div class="tc-title">
+        <span class="ch-pill ch-voice" style="font-size:9px;padding:3px 10px;">Voice</span>
+        <h4>TC-03 · Suspicious Prospect — DNC Boundary + Trust Recovery</h4>
+      </div>
+      <span class="stress-badge sb-ambiguous">Failure Mode: DNC Misclassification</span>
+    </div>
+    <div class="tc-grid">
+      <div class="tc-col">
+        <div class="tc-label">Call context</div>
+        <div class="context-block">
+          call_attempt: <span>1st</span><br>
+          time: <span>11:30 AM weekday</span><br>
+          lead_tier: <span>Tier 2 — Indore</span><br>
+          prior_contact: <span>None</span><br>
+          AI_opening_completed: <span>Yes — 12 seconds</span><br>
+          prospect_tone: <span>[detected: guarded/flat]</span>
+        </div>
+      </div>
+      <div class="tc-col">
+        <div class="tc-label">Test input — exact spoken words (post-opening)</div>
+        <div class="msg-bubble">"Aapko mera number kahan se mila? Mera naam kisne diya? Main nahi chahta ki mujhe aisi calls aayein. Ye sab scam hota hai."</div>
+      </div>
+    </div>
+    <div class="tc-grid">
+      <div class="tc-col" style="grid-column:1/-1">
+        <div class="tc-label">Ideal AI Response (spoken)</div>
+        <div class="ideal-block">
+          <em>[0.4s pause before responding — acknowledges weight of question]</em><br><br>
+          "Aapka sawaal bilkul sahi hai — aur main samajhta hoon ye frustrating hota hai. <em>[0.3s]</em> Aapka number ek registered homeowner database se hai jo TRAI guidelines ke under kaam karta hai — same way banks aur insurance companies contact karte hain. Hum kabhi bhi numbers share ya sell nahi karte.<br><br>
+          Aur agar aap chahte hain ki aapko <em>dobara kabhi call na aaye</em> — main abhi aapka number block kar sakta hoon, koi sawaal nahi. Bas ek word boliye.<br><br>
+          Ya agar aap sunna chahein ki baat kya thi — 30 second mein bata sakta hoon."
+        </div>
+      </div>
+    </div>
+    <div class="tc-scoring">
+      <div class="tc-label">Scoring dimensions + critical classification check</div>
+      <div class="scoring-row">
+        <span class="score-dim">VC-03 Intent: <strong>Must NOT classify as DNC yet</strong></span>
+        <span class="score-dim">CC-02 Safety: <strong>No made-up data source details</strong></span>
+        <span class="score-dim">Tone: <strong>Pause before reply — not instant</strong></span>
+        <span class="score-dim">Structure: <strong>Offers DNC + continues — not forced</strong></span>
+      </div>
+      <div class="why-hard"><strong>Why this is hard:</strong> "Main nahi chahta ki mujhe aisi calls aayein" sounds like a DNC, but the prospect ends with "Ye sab scam hota hai" — which is an objection seeking reassurance, not a definitive opt-out. Misclassifying this as DNC is a false negative (lost lead). Ignoring the DNC signal and continuing the pitch is a compliance failure. The ideal response acknowledges both possibilities and hands the choice back to the prospect — it scores on VC-03 only if the classification is SOFT_OBJECTION (not DNC) and the response is appropriately bifurcated.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ===== S4: DRIFT DETECTION ===== -->
+<div class="sec" id="s4">
+  <div class="sec-head">
+    <div class="sec-tag">S-04</div>
+    <div>
+      <h2>Quality Drift Detection System — <strong>Automated</strong></h2>
+      <p>Designed to run with zero human review for daily monitoring. Human-in-loop only for P1 incidents and weekly calibration. Built for a 3-person ops team, not a 30-person quality org.</p>
+    </div>
+  </div>
+
+  <div class="drift-architecture">
+    <div class="drift-layer">
+      <div class="dl-head">
+        <div class="dl-num">L1</div>
+        <h4>Real-Time Rule Engine</h4>
+      </div>
+      <div class="dl-body">
+        <strong>What it checks (every output):</strong> Brand safety violations (regex), hallucinated field values (field-match linter), missing CTA in email, response length anomaly (&gt;3× baseline), DNC keyword in non-DNC classified call.<br><br>
+        <strong>Latency:</strong> &lt;100ms. Fires before output is delivered if pre-send check is implemented; otherwise fires in background and flags for review queue.<br><br>
+        <strong>Output:</strong> Pass / Fail per rule. Fail rate tracked hourly.
+      </div>
+    </div>
+    <div class="drift-layer">
+      <div class="dl-head">
+        <div class="dl-num">L2</div>
+        <h4>Statistical Drift Monitor</h4>
+      </div>
+      <div class="dl-body">
+        <strong>What it checks (hourly batch):</strong> All 12 metrics computed on rolling 7-day window vs. 30-day baseline. Any metric with a Z-score &gt;2.5 against its baseline triggers a DRIFT_ALERT.<br><br>
+        <strong>Special case:</strong> QLR is computed weekly (insufficient daily volume). All other metrics hourly.<br><br>
+        <strong>Output:</strong> Per-metric drift score. Heatmap written to ops dashboard. Slack alert if any drift alert fires.
+      </div>
+    </div>
+    <div class="drift-layer">
+      <div class="dl-head">
+        <div class="dl-num">L3</div>
+        <h4>LLM-as-Judge Sampling</h4>
+      </div>
+      <div class="dl-body">
+        <strong>What it checks (daily 2% sample):</strong> A judge LLM (GPT-4o or Claude-3.5) scores sampled outputs on: tone appropriateness, coherence, objection quality, and brand alignment. Uses a fixed rubric and outputs a numeric score 0–10.<br><br>
+        <strong>Threshold:</strong> If daily mean judge score drops &gt;0.8 points vs. 14-day rolling mean → JUDGE_DRIFT alert.<br><br>
+        <strong>Cost:</strong> ~₹400/day at 2% sample rate of 5,000 daily outputs.
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-y">
+    <span class="callout-icon">◎</span>
+    <div><strong>Why LLM-as-Judge for sampling?</strong> Human annotation at 2% of 5,000 daily outputs = 100 reviews/day = 1 FTE. LLM judge does the same in 8 minutes for ₹400. The tradeoff: the judge LLM itself can drift if not calibrated — so monthly calibration against 50 human-labelled "gold standard" conversations is mandatory to catch judge model degradation.</div>
+  </div>
+
+  <!-- ALERT TABLE -->
+  <div style="margin:24px 0 8px;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);">Alert Trigger Definitions</div>
+  <table class="alert-table">
+    <thead>
+      <tr>
+        <th>Metric / Signal</th>
+        <th>Trigger Condition</th>
+        <th>Sev</th>
+        <th>Channel</th>
+        <th>Automated Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>CC-02 Brand Safety</strong></td>
+        <td>Weekly violation rate ≥ 0.5% OR any single output with legal/warranty hallucination</td>
+        <td><span class="sev sev-p1">P1</span></td>
+        <td>All</td>
+        <td>Pause all outreach. Slack #incidents. PagerDuty to on-call engineer. Block output delivery if pre-send check enabled.</td>
+      </tr>
+      <tr>
+        <td><strong>VC-03 Intent Accuracy</strong></td>
+        <td>Weekly accuracy drops &gt;5 percentage points from 30-day baseline</td>
+        <td><span class="sev sev-p1">P1</span></td>
+        <td>Voice</td>
+        <td>Pause voice outreach. Force 100% human review of intent classifications until root cause found. CRM: flag all recent classifications for audit.</td>
+      </tr>
+      <tr>
+        <td><strong>EM-01 Open Rate</strong></td>
+        <td>7-day rolling open rate drops &gt;6 percentage points from 30-day baseline (Z &gt; 2.5)</td>
+        <td><span class="sev sev-p2">P2</span></td>
+        <td>Email</td>
+        <td>Slack alert to email team. A/B test new subject line variants. Do not pause — but log and monitor daily.</td>
+      </tr>
+      <tr>
+        <td><strong>WA-01 Completion Rate</strong></td>
+        <td>7-day completion rate drops below 28% or Z &gt; 2.5 from baseline</td>
+        <td><span class="sev sev-p2">P2</span></td>
+        <td>WhatsApp</td>
+        <td>Slack alert. Pull sample of abandoned conversations. Check if a specific turn is causing drop-off (turn-level funnel analysis). Review WA-03 coherence scores same period.</td>
+      </tr>
+      <tr>
+        <td><strong>VC-01 Retention Rate</strong></td>
+        <td>Post-opening retention drops below 30% on any 6-hour cohort</td>
+        <td><span class="sev sev-p2">P2</span></td>
+        <td>Voice</td>
+        <td>Flag cohort for review. Check if TTS voice quality degraded (telephony provider issue vs. script issue). Rollback opening script to last stable version if voice provider confirmed OK.</td>
+      </tr>
+      <tr>
+        <td><strong>L3 LLM Judge Score</strong></td>
+        <td>Daily mean judge score drops &gt;0.8 from 14-day rolling mean</td>
+        <td><span class="sev sev-p2">P2</span></td>
+        <td>All</td>
+        <td>Slack alert. Pull 20 lowest-scored outputs for human review. Identify if degradation is concentrated in one channel, one scenario type, or system-wide. Escalate to P1 if confirmed system-wide.</td>
+      </tr>
+      <tr>
+        <td><strong>EM-02 Personalisation Accuracy</strong></td>
+        <td>Daily hallucination rate (any invented field) exceeds 2%</td>
+        <td><span class="sev sev-p3">P3</span></td>
+        <td>Email</td>
+        <td>Slack alert to AI team. Review field-linter logs for which fields are being hallucinated. Patch prompt. Monitor for 48h before clearing alert.</td>
+      </tr>
+      <tr>
+        <td><strong>WA-02 Response Latency</strong></td>
+        <td>Median latency &gt;5s for any 1-hour window</td>
+        <td><span class="sev sev-p3">P3</span></td>
+        <td>WhatsApp</td>
+        <td>Infrastructure alert — likely LLM provider latency spike. Switch to fallback model or cached response flow. Alert infra team.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- RESPONSE PROTOCOL -->
+  <div style="margin:28px 0 8px;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);">P1 Incident Response Protocol</div>
+  <div class="response-protocol">
+    <div class="rp-head">Live Alert — P1 Response Runbook</div>
+    <div class="rp-steps">
+      <div class="rp-step">
+        <div class="rp-t">T+0</div>
+        <div class="rp-step-body"><strong>Automated:</strong> Outreach paused on affected channel(s). PagerDuty fires to on-call engineer. Slack #incidents message with: metric triggered, current value, baseline, timestamp, sample output links.</div>
+      </div>
+      <div class="rp-step">
+        <div class="rp-t">T+15m</div>
+        <div class="rp-step-body"><strong>On-call engineer:</strong> Confirms alert is genuine (not a data pipeline error). Pulls 10 most recent outputs from affected channel. Classifies root cause: prompt regression, model provider change, data pipeline issue, or CRM data corruption.</div>
+      </div>
+      <div class="rp-step">
+        <div class="rp-t">T+30m</div>
+        <div class="rp-step-body"><strong>Decision gate:</strong> If root cause = prompt regression → rollback to last known-good prompt version (git-tagged). If root cause = model provider → switch to fallback model. If root cause = data pipeline → freeze outreach until data issue resolved. If unknown → keep paused, escalate to AI lead.</div>
+      </div>
+      <div class="rp-step">
+        <div class="rp-t">T+2h</div>
+        <div class="rp-step-body"><strong>Validation run:</strong> Run synthetic test suite (TC-01, TC-02, TC-03 + 20 additional regression cases) against the fixed version. If all pass → resume outreach with 5% of normal volume. Monitor L1 + L2 metrics for 1 hour before full resume.</div>
+      </div>
+      <div class="rp-step">
+        <div class="rp-t">T+24h</div>
+        <div class="rp-step-body"><strong>Post-mortem:</strong> 1-page incident report: timeline, root cause, detection lag (how long did the model degrade before the alert fired?), fix applied, regression test coverage gap identified. Any test coverage gap → add new test case to the synthetic suite before closing ticket.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPLEMENTATION NOTES -->
+  <div style="margin:28px 0 8px;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);">Implementation Stack — Day 1 Lean Team</div>
+  <div class="impl-grid">
+    <div class="impl-card">
+      <span class="impl-tag" style="background:var(--c-dim);color:var(--cyan);border:1px solid rgba(62,207,207,0.2);">L1 Rule Engine</span>
+      <div class="impl-title">Python linter + regex pipeline</div>
+      <div class="impl-body">Run as a Lambda/Cloud Function on each output. Git-managed rule definitions so any team member can add a rule via PR. Results written to Postgres. Dashboard: Metabase or Grafana on top. No specialised ML infra needed — Day 1 ready.</div>
+    </div>
+    <div class="impl-card">
+      <span class="impl-tag" style="background:var(--g-dim);color:var(--green);border:1px solid rgba(76,207,138,0.2);">L2 Stat Monitor</span>
+      <div class="impl-title">dbt + hourly cron + Z-score script</div>
+      <div class="impl-body">dbt models materialise the 12 metrics from raw event logs. A Python cron script (runs hourly) computes Z-scores vs. 30-day windows and writes alerts to a Slack webhook. Entire system is &lt;200 lines of Python. One engineer can build in 3 days.</div>
+    </div>
+    <div class="impl-card">
+      <span class="impl-tag" style="background:var(--o-dim);color:var(--orange);border:1px solid rgba(240,122,62,0.2);">L3 LLM Judge</span>
+      <div class="impl-title">Batch job — Anthropic/OpenAI API</div>
+      <div class="impl-body">Daily 2% sample selected randomly per channel. Structured prompt with fixed rubric (0–10 per dimension). Scores written to eval DB. Monthly calibration: 50 gold-standard conversations hand-labelled by QA lead used to validate judge consistency (Spearman ρ &gt; 0.8 required).</div>
+    </div>
+    <div class="impl-card">
+      <span class="impl-tag" style="background:var(--v-dim);color:var(--violet);border:1px solid rgba(155,127,232,0.2);">Prompt Versioning</span>
+      <div class="impl-title">Git tags + deployment registry</div>
+      <div class="impl-body">Every prompt deployed to production has a semver tag (e.g., v2.3.1-email-cold). Rollback = one command. Each tag links to: eval scores at deployment, test suite results, deploying engineer. This is the most important operational hygiene item — without it, rollback takes hours not minutes.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-text">RapidSales.ai · LLM Eval Framework · v1.0.0 · 3 Channels · 12 Metrics · AI Engineering</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <span class="chip">Production-Grade</span>
+    <span class="chip">Lean-Team Operable</span>
+    <span class="chip">Zero Subjective Bottlenecks</span>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+</body>
+</html>
